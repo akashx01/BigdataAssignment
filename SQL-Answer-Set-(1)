@@ -25,3 +25,750 @@ Q3. Query all columns (attributes) for every row in the CITY table
 SELECT * FROM city;
 
 ==========================================================================================================================================================================
+Q4. Query all columns for a city in CITY with the ID 1661.
+
+SELECT * FROM city
+WHERE 
+    id = 1661
+    ;
+    
+ ==========================================================================================================
+ 
+ 
+Q5. Query all attributes of every Japanese city in the CITY table. The COUNTRYCODE for Japan is JPN.
+
+SELECT * FROM city;
+WHERE 
+     country_code = 'JPN'
+     ;
+   
+==============================================================================================================
+
+
+Q6. Query the names of all the Japanese cities in the CITY table. The COUNTRYCODE for Japan is JPN.
+
+SELECT name FROM city
+WHERE 
+     country_code = 'JPN';
+    
+     
+========================================================================================================
+
+Q7. Query a list of CITY and STATE from the STATION table
+
+SELCET city,state FROM station;
+
+=================================================================================================
+Q8. Query a list of CITY names from STATION for cities that have an even ID number. Print the results in any order, but exclude duplicates from the answer.
+
+SELECT city FROM station
+WHERE
+    id % 2 = 0
+GROUP BY city;
+
+==================================================================================================
+
+Q9. Find the difference between the total number of CITY entries in the table and the number of
+distinct CITY entries in the table.
+
+SELECT (COUNT(city)) - COUNT(distinct(city))) as Difference
+FROM station;
+
+==========================================================================================================
+
+
+Q10. Query the two cities in STATION with the shortest and longest CITY names, as well as their
+respective lengths (i.e.: number of characters in the name). If there is more than one smallest or
+largest city, choose the one that comes first when ordered alphabetically.
+
+SELECT CITY,LENGTH(CITY)AS MIN_LENGTH_OF_CITY FROM STATION ORDER BY LENGTH(CITY) ASC LIMIT 1;
+
+SELECT CITY,LENGTH(CITY) AS MAX_LENGTH_OF_CITY FROM STATION ORDER BY LENGTH(CITY) DESC LIMIT 1;
+
+======================================================================================================
+
+Q11. Query the list of CITY names starting with vowels (i.e., a, e, i, o, or u) from STATION. Your result cannot contain duplicates.
+
+SELECT distinct(city) FROM station
+WHERE
+    city LIKE ("a%")
+    OR city like ("e%")
+    OR city like ("i%")
+    OR city like ("o%")
+    OR city like ("u%")
+;
+
+===================================================================================================
+
+Q12. Query the list of CITY names ending with vowels (a, e, i, o, u) from STATION. Your result cannot
+contain duplicates.
+
+SELECT distinct(city) FROM station
+WHERE
+    city LIKE ("%a")
+    OR city like ("%e")
+    OR city like ("%i")
+    OR city like ("%o")
+    OR city like ("%u")
+;
+===================================================================================================
+
+Q13. Query the list of CITY names from STATION that do not start with vowels. Your result cannot
+contain duplicates.
+ 
+ SELECT distinct(city) FROM station
+WHERE
+    city Not LIKE ("a%")
+    and city not like ("e%")
+    and city not like ("i%")
+    and city not like ("o%")
+    and city not like ("u%")
+;
+
+===================================================================================================
+
+Q14. Query the list of CITY names from STATION that do not end with vowels. Your result cannot
+contain duplicates.
+ 
+SELECT distinct(city) FROM station
+WHERE
+    city Not LIKE ("%a")
+    and city not like ("%e")
+    and city not like ("%i")
+    and city not like ("%o")
+    and city not like ("%u")
+; 
+ 
+=====================================================================================================
+
+Q15. Query the list of CITY names from STATION that either do not start with vowels or do not end
+with vowels. Your result cannot contain duplicates.
+ 
+SELECT distinct(city) FROM sample_dataset_2
+WHERE
+    Left(city, 1) not in ("a", "i", "e", "o","u")
+    OR
+    right(city, 1) not in ("a", "i", "e", "o","u")
+;
+
+========================================================================================================
+
+Q16. Query the list of CITY names from STATION that do not start with vowels and do not end with
+vowels. Your result cannot contain duplicates.
+
+SELECT distinct(city) FROM station
+WHERE
+    Left(city, 1) not in ("a", "i", "e", "o","u")
+    AND
+    right(city, 1) not in ("a", "i", "e", "o","u")
+;
+
+====================================================================================================
+Q17 Write an SQL query that reports the products that were only sold in the first quarter of 2019. That is,
+between 2019-01-01 and 2019-03-31 inclusive.
+Return the result table in any order.
+
+
+SELECT * from product WHERE product_id in (SELECT product_id FROM sales 
+WHERE
+    sale_date >= '2019-01-01' and sale_date <= "2019-03-31")
+    ;
+ 
+======================================================================================================
+
+Q18.Write an SQL query to find all the authors that viewed at least one of their own articles.
+Return the result table sorted by id in ascending order.
+
+select distinct author_id as id from Views where author_id = viewer_id order by author_id asc;
+
+===========================================================================================================
+
+Q19. Write an SQL query to find the percentage of immediate orders in the table, rounded to 2 decimal
+places.
+
+
+select round(100*d2.immediate_orders/count(d1.delivery_id), 2) as immediate_percentage
+from Delivery d1,
+    (select count(order_date) as immediate_orders
+    from Delivery 
+    where (order_date = customer_pref_delivery_date)) d2;
+    
+=====================================================================================================
+
+Q20. Write an SQL query to find the ctr of each Ad. Round ctr to two decimal points.
+Return the result table ordered by ctr in descending order and by ad_id in ascending order in case of a
+tie
+
+SELECT ad_id, 
+    round(
+        (SUM(action='clicked')/ 
+        (SUM(action='clicked') + SUM(action='viewed'))
+        )*100, 2) as CTR 
+FROM ads GROUP BY ad_id
+ORDER BY CTR desc, ad_id ASC;
+
+ =====================================================================================================
+Q21. Write an SQL query to find the team size of each of the employees.
+Return result table in any order
+  
+select employee_id, 
+         count(*) over(partition by team_id) as team_size
+from Employee order by team_size desc;
+
+======================================================================================================
+ Q22. Write an SQL query to find the type of weather in each country for November 2019.
+The type of weather is:
+● Cold if the average weather_state is less than or equal 15,
+● Hot if the average weather_state is greater than or equal to 25, and
+● Warm otherwise.
+Return result table in any order
+
+SELECT ct.country_id, ct.country_name, wt.new_state
+FROM
+countries as ct
+RIGHT JOIN (SELECT country_id, CASE
+when AVG(weather_state) <= 15 then "cold"
+when AVG(weather_state) >= 25 then "hot"
+else "warm"
+end as new_state
+FROM weather
+WHERE day >= "2019-11-01" and day <= "2019-11-30"
+GROUP BY country_id) as wt ON ct.country_id=wt.country_id
+ORDER BY wt.new_state
+;
+=======================================================================================================
+
+Q23. Write an SQL query to find the average selling price for each product. average_price should be
+rounded to 2 decimal places.
+Return the result table in any order.
+
+SELECT a.product_id
+	, round(SUM(a.units * b.price) / SUM(a.units), 2) AS average_price
+FROM UnitsSold a
+	JOIN Prices b
+	ON (a.product_id = b.product_id
+		AND a.purchase_date >= b.start_date
+		AND a.purchase_date <= b.end_date)
+GROUP BY product_id;
+
+===================================================================================================
+ 
+Q24. Write an SQL query to report the first login date for each player.
+Return the result table in any order.
+
+select player_id, event_date as first_login_date FROM (SELECT player_id, event_date,
+rank() over(partition by player_id ORDER BY event_date ASC) as first_login
+FROM activity ORDER BY player_id) as tmp
+WHERE
+    first_login = 1;
+
+ ==================================================================================================
+ 
+Q25. Write an SQL query to report the device that is first logged in for each player.
+Return the result table in any order.
+ 
+select 
+     tmp.player_id,tmp.device_id
+from (select *,
+        row_number() over(partition by player_id ) as row_num
+     from Activity) tmp
+where tmp.row_num = 1;
+==================================================================================================
+
+Q26. Write an SQL query to get the names of products that have at least 100 units ordered in February 2020
+and their amount.
+Return result table in any order.
+
+select a.product_name, sum(unit) as unit
+from Products a
+left join Orders b
+on a.product_id = b.product_id
+where b.order_date between '2020-02-01' and '2020-02-29'
+group by a.product_id
+having sum(unit) >= 100;
+=====================================================================================================
+
+Q27. Write an SQL query to find the users who have valid emails.
+A valid e-mail has a prefix name and a domain where:
+● The prefix name is a string that may contain letters (upper or lower case), digits, underscore
+'_', period '.', and/or dash '-'. The prefix name must start with a letter.
+● The domain is '@leetcode.com'.
+Return the result table in any order. 
+ 
+
+SELECT *
+FROM Users
+WHERE REGEXP_LIKE(mail, '^[a-zA-Z][a-zA-Z0-9\_\.\-]*@leetcode.com');
+
+=========================================================================================================
+
+Q28. Write an SQL query to report the customer_id and customer_name of customers who have spent at
+least $100 in each month of June and July 2020.
+Return the result table in any order.
+
+select o.customer_id, c.name
+from Customers c, Product p, Orders o
+where c.customer_id = o.customer_id and p.product_id = o.product_id
+group by o.customer_id
+having 
+(
+    sum(case when o.order_date like '2020-06%' then o.quantity*p.price else 0 end) >= 100
+    and
+    sum(case when o.order_date like '2020-07%' then o.quantity*p.price else 0 end) >= 100
+);
+====================================================================================================
+
+Q29. Write an SQL query to report the distinct titles of the kid-friendly movies streamed in June 2020.
+Return the result table in any order. 
+ 
+SELECT DISTINCT title
+FROM Content ctt
+INNER JOIN TVProgram tv
+ON ctt.content_id = tv.content_id
+WHERE content_type = 'Movies'
+AND Kids_content = 'Y'
+AND program_date BETWEEN '2020-06-01' AND '2020-06-30';
+
+==================================================================================================
+ 
+Q30. Write an SQL query to find the npv of each query of the Queries table.
+Return the result table in any order
+
+SELECT q.id, q.year, COALESCE(n.npv,0) AS npv
+FROM Queries q
+LEFT JOIN NPV n
+ON q.id = n.id AND q.year=n.year;
+
+==========================================================================================================
+
+Q31. Write an SQL query to find the npv of each query of the Queries table.
+Return the result table in any order.
+
+SELECT q.id, q.year, IFNULL(npv_table.npv, 0) as npv_value FROM queries q
+LEFT JOIN
+(SELECT * FROM npv) as npv_table
+ON
+    npv_table.id = q.id and npv_table.year = q.year;
+   
+=======================================================================================================
+
+Q32. Write an SQL query to show the unique ID of each user, If a user does not have a unique ID replace just
+show null.
+
+select unique_id, name
+from Employees
+left join EmployeeUNI
+on if (Employees.id = EmployeeUNI.id, Employees.id, null);
+====================================================================================================
+
+Q33. Write an SQL query to report the distance travelled by each user.
+Return the result table ordered by travelled_distance in descending order, if two or more users
+travelled the same distance, order them by their name in ascending order.
+
+select name, sum(ifnull(distance, 0)) as travelled_distance
+from Rides r
+right join Users u
+on r.user_id = u.id
+group by name
+order by 2 desc,1 asc;
+
+==================================================================================================
+
+Q34. Write an SQL query to get the names of products that have at least 100 units ordered in February 2020
+and their amount.
+Return result table in any order
+
+ select a.product_name, sum(unit) as unit
+from Products a
+left join Orders b
+on a.product_id = b.product_id
+where b.order_date between '2020-02-01' and '2020-02-29'
+group by a.product_id
+having sum(unit) >= 100;
+======================================================================================================
+
+Q35. Write an SQL query to:
+● Find the name of the user who has rated the greatest number of movies. In case of a tie,
+return the lexicographically smaller user name.
+● Find the movie name with the highest average rating in February 2020. In case of a tie, return
+the lexicographically smaller movie name.
+
+(SELECT name FROM users
+WHERE
+    user_id IN
+(SELECT user_id FROM movie_rating
+GROUP BY user_id
+HAVING
+    count(user_id) = (SELECT MAX(mvr.total_count) FROM (SELECT user_id, count(user_id) as total_count FROM movie_rating
+GROUP BY user_id) as mvr))
+GROUP BY name
+ORDER BY name ASC LIMIT 1)
+UNION ALL
+(SELECT title FROM movies
+WHERE
+    movie_id IN
+(SELECT movie_id FROM movie_rating
+GROUP BY movie_id
+HAVING
+    AVG(rating) = (SELECT MAX(mvr.total_rating) FROM (SELECT movie_id, AVG(rating) as total_rating FROM movie_rating
+WHERE
+    created_at >= "2020-02-01" and created_at <= "2020-02-28"
+GROUP BY movie_id) as mvr))
+GROUP BY title
+ORDER BY title ASC LIMIT 1
+);
+====================================================================================================
+
+Q36. Write an SQL query to report the distance travelled by each user.
+Return the result table ordered by travelled_distance in descending order, if two or more users
+travelled the same distance, order them by their name in ascending order.
+
+select name, sum(ifnull(distance, 0)) as travelled_distance
+from Rides r
+right join Users u
+on r.user_id = u.id
+group by name
+order by 2 desc,1 asc;
+
+=====================================================================================================
+ 
+Q37. Write an SQL query to show the unique ID of each user, If a user does not have a unique ID replace just
+show null.
+ 
+ select unique_id, name
+from Employees
+left join EmployeeUNI
+on if (Employees.id = EmployeeUNI.id, Employees.id, null);
+
+==========================================================================================================
+
+Q38. Write an SQL query to find the id and the name of all students who are enrolled in departments that no
+longer exist.
+
+select s.id, s.name
+from Students s
+left join Departments d
+on s.department_id = d.id
+where d.id is null;
+
+=============================================================================================================
+Q39. Write an SQL query to report the number of calls and the total call duration between each pair of
+distinct persons (person1, person2) where person1 < person2.
+Return the result table in any order.
+
+
+SELECT LEAST(from_id,to_id) as person1,
+GREATEST(from_id,to_id) as person2,
+COUNT(*) as call_count,
+SUM(duration) as total_duration
+FROM Calls
+GROUP BY person1,person2;
+
+=========================================================================================================
+
+Q40. Write an SQL query to find the average selling price for each product. average_price should be
+rounded to 2 decimal places.
+Return the result table in any order
+ 
+select p.product_id, 
+    round(sum(p.price * u.units)/sum(u.units), 2) as average_price
+from Prices p
+left join UnitsSold u
+on p.product_id = u.product_id and 
+    datediff(u.purchase_date, p.start_date) >= 0 and
+    datediff(p.end_date, u.purchase_date) >= 0
+group by p.product_id;
+
+==========================================================================================================
+
+Q41. Write an SQL query to report the number of cubic feet of volume the inventory occupies in each
+warehouse.
+ 
+ select name as warehouse_name, sum(units * vol) as volume
+from Warehouse w
+join (select product_id, Width*Length*Height as vol
+     from Products) p
+on w.product_id = p.product_id
+group by name;
+
+===============================================================================================================
+Q42. Write an SQL query to report the difference between the number of apples and oranges sold each day.
+Return the result table ordered by sale_date.
+
+select a.sale_date, (a.sold_num - b.sold_num) as diff 
+from Sales a left join Sales b
+on a.sale_date = b.sale_date
+where a.fruit = 'apples' and b.fruit = 'oranges';
+
+=========================================================================================================
+
+Q43. Write an SQL query to report the fraction of players that logged in again on the day after the day they
+first logged in, rounded to 2 decimal places. In other words, you need to count the number of players
+that logged in for at least two consecutive days starting from their first login date, then divide that
+number by the total number of players.
+
+WITH CTE AS (
+SELECT
+player_id, min(event_date) as event_start_date
+from
+Activity
+group by player_id )
+
+SELECT
+round((count(distinct c.player_id) / (select count(distinct player_id) from Activity)),2)as fraction
+FROM
+CTE c
+JOIN Activity a
+on c.player_id = a.player_id
+and datediff(c.event_start_date, a.event_date) = -1;
+
+===================================================================================================
+
+Q44. Write an SQL query to report the managers with at least five direct reports.
+Return the result table in any order
+ 
+ select 
+    a.name 
+from 
+    Employee a 
+inner join 
+    Employee b 
+on (a.id = b.managerid) 
+group by a.name 
+having count(distinct b.id) >= 5;
+
+=============================================================================================================
+ 
+Q45. Write an SQL query to report the respective department name and number of students majoring in
+each department for all departments in the Department table (even ones with no current students).
+Return the result table ordered by student_number in descending order. In case of a tie, order them by
+dept_name alphabetically.
+
+select 
+    a.dept_name,
+    coalesce(count(student_id), 0) student_number
+from 
+    Department a 
+left join
+    Student b
+on 
+    (a.dept_id = b.dept_id)
+group by a.dept_name
+order by student_number desc, a.dept_name asc;
+======================================================================================================
+
+Q46. Write an SQL query to report the customer ids from the Customer table that bought all the products in
+the Product table.
+ 
+SELECT
+    customer_id
+FROM customer
+GROUP BY customer_id
+HAVING COUNT( DISTINCT product_key) = (SELECT COUNT(*) FROM product);
+
+========================================================================================================
+Q47.Write an SQL query that reports the most experienced employees in each project. In case of a tie,
+report all employees with the maximum number of experience years.
+Return the result table in any order.
+
+SELECT
+    project_id,
+    employee_id
+FROM (
+    SELECT
+        p.project_id,
+        p.employee_id,
+        DENSE_RANK() OVER(PARTITION BY p.project_id ORDER BY e.experience_years DESC) as rnk
+    FROM Project as p JOIN Employee as e
+    ON p.employee_id = e.employee_id
+    ) x
+WHERE rnk = 1;
+
+=============================================================================================================
+Q48.Write an SQL query to find the winner in each group.
+Return the result table in any order
+
+
+select Books.book_id, name from Books join Orders
+    on Books.book_id = Orders.book_id
+    where available_from < '2019-05-23'
+    and dispatch_date between '2018-06-23' and '2019-06-23'
+    group by Books.book_id
+    having sum(quantity) < 10
+    union
+select book_id, name from Books
+    where available_from < '2019-05-23'
+    and book_id not in (
+        select distinct book_id from Orders where dispatch_date between '2018-06-23' and '2019-06-23'
+    );
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
