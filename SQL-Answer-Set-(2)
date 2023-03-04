@@ -1,0 +1,173 @@
+
+Q51. Write an SQL query to report the name, population, and area of the big countries.
+Return the result table in any order.
+
+SELECT name, population, gdp  FROM world
+WHERE
+    area >= 3000000 or population >= 25000000;
+    
+========================================================================================================================================================================
+
+Q52. Write an SQL query to report the names of the customer that are not referred by the customer with id = 2
+
+SELECT name FROM customer
+WHERE
+    referee_id != 2 or referee_id IS NULL;
+    
+========================================================================================================================================================================
+
+Q53. Write an SQL query to report all customers who never order anything.
+Return the result table in any order.
+
+SELECT name FROM customers
+WHERE
+    id not IN (SELECT customerid FROM orders);
+    
+ ======================================================================================================================================================================
+
+Q54. Write an SQL query to find the team size of each of the employees.
+Return result table in any order.
+
+SELECT employee_id, 
+COUNT(employee_id) over(partition by team_id) as total_count
+from employee ORDER BY employee_id;
+
+=======================================================================================================================================================================
+
+Q55. A telecommunications company wants to invest in new countries. The company intends to invest in
+the countries where the average call duration of the calls in this country is strictly greater than the
+global average call duration.
+Write an SQL query to find the countries where this company can invest.
+Return the result table in any order.
+
+with country_phone as (SELECT p.*, c.name as country_name FROM person p JOIN
+(SELECT name, 
+CASE
+    WHEN LENGTH(country_code) < 3 then CONCAT("0", country_code)
+    else country_code
+end as new_code
+FROM country) as c 
+ON
+    left(p.phone_number, 3) = c.new_code
+)
+
+SELECT country_name, sum(total_dur)/sum(total_count) as final FROM (SELECT cp.country_name, (2 * cal.duration) as total_dur,  (2 * count(cp.country_name)) as total_count FROM calls as cal
+JOIN
+    country_phone as cp
+ON
+    cal.caller_id = cp.id
+GROUP BY cp.country_name, duration) as tmp
+GROUP BY country_name ORDER BY final DESC LIMIT 1
+
+=======================================================================================================================================================================
+
+Q56. Write an SQL query to report the device that is first logged in for each player.
+Return the result table in any order.
+
+select player_id, min(event_date) as first_login
+from Activity 
+group by player_id;
+=======================================================================================================================================================================
+
+Q57. Write an SQL query to find the customer_number for the customer who has placed the largest
+number of orders.
+The test cases are generated so that exactly one customer will have placed more orders than any
+other customer.
+
+SELECT customer_number FROM (SELECT customer_number, COUNT(customer_number) as total_count FROM orders
+GROUP BY customer_number
+ORDER BY total_count DESC LIMIT 1) as tmp;
+
+=======================================================================================================================================================================
+
+Q58. Write an SQL query to report all the consecutive available seats in the cinema.
+Return the result table ordered by seat_id in ascending order.
+The test cases are generated so that more than two seats are consecutively available.
+
+with CTE as (SELECT *, 
+lag(free) over(order by free) as new_val
+FROM cinema)
+
+SELECT seat_id FROM CTE
+WHERE
+    new_val = 1
+GROUP BY seat_id;
+
+=======================================================================================================================================================================
+
+Q59. Write an SQL query to report the names of all the salespersons who did not have any orders related to
+the company with the name "RED".
+
+SELECT name
+FROM Salesperson
+WHERE sales_id
+NOT IN (
+    SELECT s.sales_id FROM Orders o
+    INNER JOIN Salesperson s ON o.sales_id = s.sales_id
+    INNER JOIN Company c ON o.com_id = c.com_id
+    WHERE c.name = 'RED'
+);
+
+=======================================================================================================================================================================
+
+Q60. Write an SQL query to report for every three line segments whether they can form a triangle.
+Return the result table in any order.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
