@@ -4,8 +4,7 @@ ANS:-
 
 SELECT * FROM city
 WHERE
-    population > 100000 AND country_code = 'USA'
-    ;
+    population > 100000 AND country_code = 'USA';
 
 =========================================================================================================================================================================
 
@@ -14,8 +13,7 @@ Q2. Query the NAME field for all American cities in the CITY table with populati
 
 SELECT name FROM city
 WHERE
-    population > 120000 AND country_code = 'USA'
-    ;
+    population > 120000 AND country_code = 'USA';
     
 ==========================================================================================================================================================================
 
@@ -29,8 +27,7 @@ Q4. Query all columns for a city in CITY with the ID 1661.
 
 SELECT * FROM city
 WHERE 
-    id = 1661
-    ;
+    id = 1661;
     
  ==========================================================================================================
  
@@ -39,8 +36,7 @@ Q5. Query all attributes of every Japanese city in the CITY table. The COUNTRYCO
 
 SELECT * FROM city;
 WHERE 
-     country_code = 'JPN'
-     ;
+     country_code = 'JPN';
    
 ==============================================================================================================
 
@@ -171,8 +167,7 @@ Return the result table in any order.
 
 SELECT * from product WHERE product_id in (SELECT product_id FROM sales 
 WHERE
-    sale_date >= '2019-01-01' and sale_date <= "2019-03-31")
-    ;
+    sale_date >= '2019-01-01' and sale_date <= "2019-03-31");
  
 ======================================================================================================
 
@@ -234,8 +229,7 @@ end as new_state
 FROM weather
 WHERE day >= "2019-11-01" and day <= "2019-11-30"
 GROUP BY country_id) as wt ON ct.country_id=wt.country_id
-ORDER BY wt.new_state
-;
+ORDER BY wt.new_state;
 =======================================================================================================
 
 Q23. Write an SQL query to find the average selling price for each product. average_price should be
@@ -606,161 +600,7 @@ select book_id, name from Books
  
  
  
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
+
  
  
  
