@@ -152,3 +152,293 @@ ORDER BY employee_id ASC
 ;
 
 ======================================================================================================================================================
+Q120. Write a SQL Query to find the number of prime and non-prime items that can be stored 
+in the 500,000 square feet warehouse. Output the item type and number of items to be st
+
+WITH temp_inventory AS (
+						SELECT 
+								item_type, 
+								SUM(square_foot) AS square_foot_per_category, 
+								COUNT(*) AS count_of_items,
+								CASE 
+									WHEN item_type = 'PRIME_ELIGIBLE' THEN FLOOR(500000/SUM(square_foot)) * COUNT(*)
+									END AS prime_items_count
+						FROM 
+								inventory
+						GROUP BY 
+								item_type
+					),
+                    
+    temp_inventory2 AS (
+						SELECT 
+								(500000 - SUM(square_foot_per_category)*FLOOR(500000/SUM(square_foot_per_category))) AS area_left 
+                        FROM 
+								temp_inventory 
+						WHERE 
+								item_type = 'PRIME_ELIGIBLE'
+					),
+                    
+    temp_inventory3 AS (
+						SELECT 
+								item_type, 
+								CASE 
+									WHEN item_type = 'PRIME_ELIGIBLE' THEN prime_items_count
+									WHEN item_type = 'NOT_PRIME' THEN FLOOR((SELECT area_left FROM temp_inventory2) / square_foot_per_category) * count_of_items
+									END AS item_count
+						FROM 
+								temp_inventory
+					)
+             
+SELECT 
+        item_type,
+        item_count
+FROM 
+        temp_inventory3;
+==================================================================================================================================================================
+Q121.Write a Query to obtain the active user retention in July 2022. 
+Output the month (in numerical format 1, 2, 3) and the number of monthly active users (MAUs).
+
+
+
+WITH temp_actions AS (
+						SELECT 
+								user_id,
+								event_date,
+								event_type,
+								SUBSTR(event_date, 6, 2) - lag(SUBSTR(event_date, 6, 2)) OVER w AS difference
+						FROM 
+								user_actions
+						WINDOW 
+								w as (PARTITION BY user_id ORDER BY event_date)
+				),
+
+	temp_actions2 AS (
+						SELECT 
+								SUBSTR(event_date, 6, 2) AS months,
+								COUNT(user_id) AS monthly_active_users
+						FROM 	
+								temp_actions
+						WHERE 
+								difference = 1 AND event_type IN ('LIKE', 'COMMENT', 'SIGN-IN')
+						GROUP BY 
+								months
+				)
+   
+SELECT 
+		months,
+        monthly_active_users
+FROM 
+        temp_actions2;
+
+=================================================================================================================================================================
+Q122. Write a Query to report the median of searches made by a user. 
+ Round the median to one decimal point.
+
+
+    temp_search_freq2 as (
+							SELECT 
+									searches,
+									num_users,
+									CASE
+							WHEN total_records % 2 <>  0 THEN (
+														SELECT 
+																DISTINCT ROUND(SUM(searches) OVER w /
+																COUNT(*) OVER w,1)
+														FROM 
+																temp_search_freq 
+														WHERE 
+																row_num = ROUND((total_records + 1) / 2, 0)
+														WINDOW 
+																w AS (ORDER BY searches ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)
+														
+													)
+													
+							WHEN total_records % 2 = 0 THEN (
+														SELECT 
+																DISTINCT ROUND(SUM(searches) OVER w /
+																COUNT(*) OVER w,1)
+														FROM
+																temp_search_freq 
+														WHERE 
+																row_num IN (total_records/2,(total_records/2)+1)
+														WINDOW 
+																w AS (ORDER BY searches ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)
+												)
+							END AS median
+							FROM 
+                        temp_search_freq
+            )
+            
+
+SELECT 
+        DISTINCT median 
+FROM 
+        temp_search_freq2;
+===================================================================================================================================================================
+Q123. Write a Query to update the Facebook advertisers status using the daily_pay table. 
+Advertiser is a two-column table containing the user id and their payment status based 
+on the last payment and daily_pay table has current information about their payment. 
+Only advertisers who paid will show up in this table.
+Output the user id and current payment status sorted by the user id.
+
+
+SELECT 
+        user_id, 
+        CASE
+            WHEN user_id IN (SELECT user_id FROM daily_pay) THEN 'EXISTING'
+            ELSE 'CHURN'
+            END AS new_status
+FROM 
+        advertiser
+ORDER BY
+		user_id;
+
+=================================================================================================================================================================
+ Q124. Write a SQL Query that calculates the total time that the fleet of 
+ servers was running. The output should be in units of full days.
+
+
+
+SELECT 
+		stop_time - start_time AS total_up_time
+FROM
+		(
+			SELECT
+					SUM(
+						CASE
+							WHEN session_status = 'start' then EXTRACT(DAY from STR_TO_DATE(status_time, '%m/%d/%y'))
+							END
+						) AS start_time,
+					SUM(
+						CASE
+							WHEN session_status = 'stop' then EXTRACT(DAY from STR_TO_DATE(status_time, '%m/%d/%y'))
+							END
+						) AS stop_time
+			FROM
+					server_utilization
+        ) temp_server_utilization;
+
+
+==================================================================================================================================================================
+
+Q125. Sometimes, payment transactions are repeated by accident; it could be due to user error, 
+API failure or a retry error that causes a credit card to be charged twice.
+Using the transactions table, identify any payments made at the same merchant with the 
+same credit card for the same amount within 10 minutes of each other. Count such repeated payments.
+
+WITH temp_transactions AS (
+							SELECT 
+									merchant_id, 
+									credit_card_id, 
+									amount, 
+									transaction_timestamp,
+									LAG(transaction_timestamp) OVER w AS prev_tran_timestamp,
+									timestampdiff(MINUTE,LAG(transaction_timestamp) OVER w, transaction_timestamp) AS difference
+							FROM 
+									transactions
+							WINDOW
+									w as (PARTITION BY credit_card_id ORDER BY  transaction_timestamp)
+            )
+ 
+ SELECT 
+        COUNT(DISTINCT merchant_id) AS payment_count
+FROM 
+        temp_transactions
+ WHERE 
+        difference <= 10;
+============================================================================================================================================================================
+
+Q126. Write a SQL Query to find the bad experience rate in the first 14 days for new users who signed 
+ up in June 2022. Output the percentage of bad experience rounded to 2 decimal places.
+
+
+SELECT 
+        ROUND(
+            SUM(
+                CASE
+                    WHEN status !='completed successfully'  THEN 1 ELSE 0
+                    END 
+                )*100.0/count(*),2)  AS bad_experience_pct
+FROM 
+        customers C
+INNER JOIN 
+        orders O 
+ON 
+        o.customer_id = c.customer_id
+WHERE 
+        o.order_timestamp < date_add(STR_TO_date(signup_timestamp, '%m/%d/%Y'), INTERVAL 14 DAY) 
+        AND 
+        MONTH(STR_TO_date(signup_timestamp, '%m/%d/%Y')) = 06 
+        AND 
+        YEAR(STR_TO_date(signup_timestamp, '%m/%d/%Y')) = 2022;
+
+
+========================================================================================================================================================================
+
+Q127. Write an SQL Query to find the total score for each gender on each day.
+Return the result table ordered by gender and day in ascending order.
+
+SELECT 
+        gender, 
+        day, 
+        SUM(score_points) OVER(PARTITION BY gender ORDER BY day 
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS total_points 
+FROM 
+        scores
+order by 
+		gender,
+        day;
+==================================================================================================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
